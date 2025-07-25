@@ -1,0 +1,17 @@
+[package]
+name = "image_writer_rs"
+version = "1.0.0"
+edition = "2024"
+authors = ["Pawel Kraszewski <root@linuxpedia.pl>"]
+
+[dependencies]
+indicatif = { version = "0.18" }
+dialoguer = { version = "0.11" }
+color-eyre = { version = "0.6" }
+log = { version = "0.4" }
+env_logger = { version = "0.11" }
+libc = { version = "0.2" }
+sha2 = { version = "0.10" }
+
+bzip2 = { version = "0.6" }
+liblzma = { version = "0.4" }
