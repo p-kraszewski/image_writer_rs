@@ -1,8 +1,13 @@
 [package]
 name = "image_writer_rs"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"
-authors = ["Pawel Kraszewski <root@linuxpedia.pl>"]
+authors = ["Pawel Kraszewski <pawel@kraszewscy.net>"]
+description = "Write bootable OS images to USB drive (dd on steroids)"
+keywords = ["dd", "image", "disk"]
+categories = ["command-line-utilities", "filesystem"]
+repository = "https://github.com/p-kraszewski/image_writer_rs.git"
+license = "BSD-2-Clause"
 
 [dependencies]
 indicatif = { version = "0.18" }
