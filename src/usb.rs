@@ -12,7 +12,7 @@ pub struct Device {
     pub dev:    path::PathBuf,
     pub model:  String,
     pub vendor: String,
-    pub size:   u64,
+    pub size:   usize,
 }
 
 impl fmt::Display for Device {
@@ -49,7 +49,7 @@ pub fn check_device(sys: &path::Path) -> Result<Device> {
     let sys_path = path::Path::new("/sys/block").join(base_name);
     let vendor = get_str(&sys_path, "device/vendor")?;
     let model = get_str(&sys_path, "device/model")?;
-    let size = get_int(&sys_path, "size", 10)? * 512;
+    let size = get_int(&sys_path, "size", 10)? as usize * 512;
     if size == 0 {
         return Err(eyre!("Probably an empty card reader"));
     }
@@ -82,23 +82,23 @@ pub fn detect_pendrives() -> Result<Device> {
                                 match check_device(&path) {
                                     Ok(device) => {
                                         devices.push(device);
-                                    },
+                                    }
                                     Err(e) => {
                                         debug!("Skipped device {path:?}: {e}");
-                                    },
+                                    }
                                 }
                             }
-                        },
+                        }
 
                         Err(e) => {
                             error!("Failed to dereference device: {e}");
-                        },
+                        }
                     }
                 }
-            },
+            }
             Err(e) => {
                 debug!("Failed to iterate over entry {e}");
-            },
+            }
         }
     }
 
