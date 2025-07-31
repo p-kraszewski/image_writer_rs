@@ -1,13 +1,10 @@
-use color_eyre::{
-    eyre,
-    eyre::{eyre, Result},
-};
+use color_eyre::eyre::{eyre, Result};
 use dialoguer::{theme::ColorfulTheme, Select};
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use std::{ffi::OsStr, fmt, fs, path};
 
-const GiB: u64 = 1024 * 1024 * 1024;
+const GIB: u64 = 1024 * 1024 * 1024;
 const GB: u64 = 1000 * 1000 * 1000;
 
 #[derive(Debug, Clone)]
@@ -27,7 +24,7 @@ impl fmt::Display for Device {
                 vendor = self.vendor,
                 model = self.model,
                 size = self.size as f64 / GB as f64,
-                sizei = self.size as f64 / GiB as f64,
+                sizei = self.size as f64 / GIB as f64,
             )
             .as_str(),
         )
@@ -76,25 +73,32 @@ pub fn detect_pendrives() -> Result<Device> {
                 if dev.starts_with("usb-") && dev.ends_with("0:0") {
                     match fs::canonicalize(entry.path()) {
                         Ok(path) => {
-                            match check_device(&path) {
-                                Ok(device) => {
-                                    devices.push(device);
-                                }
-                                Err(e) => {
-                                    debug!("Skipped device {path:?}: {e}");
+                            if !path
+                                .file_name()
+                                .unwrap()
+                                .to_string_lossy()
+                                .starts_with("sr")
+                            {
+                                match check_device(&path) {
+                                    Ok(device) => {
+                                        devices.push(device);
+                                    },
+                                    Err(e) => {
+                                        debug!("Skipped device {path:?}: {e}");
+                                    },
                                 }
                             }
-                        }
+                        },
 
                         Err(e) => {
                             error!("Failed to dereference device: {e}");
-                        }
+                        },
                     }
                 }
-            }
+            },
             Err(e) => {
                 debug!("Failed to iterate over entry {e}");
-            }
+            },
         }
     }
 
