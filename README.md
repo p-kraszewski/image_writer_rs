@@ -1,5 +1,15 @@
 # `image_writer_rs`
 
+## Warning
+
+**WARNING WARNING WARNING**
+
+The code assumes:
+
+* You run it on Linux
+* The `/dev/disk/by-id/` directory exists and is properly populated
+* The `/sys/block/` directory exists and is properly populated
+
 ## Features
 
 - Autodetect any writable USB mass storage with non-zero capacity, show choice when more than 1 detected.
