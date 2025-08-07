@@ -1,5 +1,5 @@
-use color_eyre::eyre::{eyre, Result};
-use dialoguer::{theme::ColorfulTheme, Select};
+use color_eyre::eyre::{Result, eyre};
+use dialoguer::{Select, theme::ColorfulTheme};
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use std::{ffi::OsStr, fmt, fs, path};
@@ -82,29 +82,32 @@ pub fn detect_pendrives() -> Result<Device> {
                                 match check_device(&path) {
                                     Ok(device) => {
                                         devices.push(device);
-                                    }
+                                    },
                                     Err(e) => {
                                         debug!("Skipped device {path:?}: {e}");
-                                    }
+                                    },
                                 }
                             }
-                        }
+                        },
 
                         Err(e) => {
                             error!("Failed to dereference device: {e}");
-                        }
+                        },
                     }
                 }
-            }
+            },
             Err(e) => {
                 debug!("Failed to iterate over entry {e}");
-            }
+            },
         }
     }
 
     if devices.is_empty() {
         return Err(eyre!("No devices found"));
     }
+
+    devices.sort_by(|dev1, dev2| dev1.dev.cmp(&dev2.dev));
+    devices.dedup_by(|dev1, dev2| dev1.dev.eq(&dev2.dev));
 
     let device = if devices.len() > 1 {
         info!("Multiple devices detected");

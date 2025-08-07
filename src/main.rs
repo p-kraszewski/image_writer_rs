@@ -40,14 +40,14 @@ fn main() -> Result<()> {
         None => {
             error!("No disk image path given, aborting");
             return Ok(());
-        }
+        },
     };
 
     let ext = match source_file.extension() {
         None => {
             error!("Unknown image type. Quitting");
             return Ok(());
-        }
+        },
         Some(ext) => ext.to_string_lossy().to_ascii_uppercase(),
     };
 
@@ -56,7 +56,7 @@ fn main() -> Result<()> {
         Err(e) => {
             error!("Detecting pendrives failed: {}", eyre_unroll(e));
             return Ok(());
-        }
+        },
     };
 
     let reader = match by_ext(&ext) {
@@ -64,7 +64,7 @@ fn main() -> Result<()> {
         Err(e) => {
             error!("Detecting decompressor failed: {}", eyre_unroll(e));
             return Ok(());
-        }
+        },
     };
 
     info!(
@@ -77,7 +77,7 @@ fn main() -> Result<()> {
         Err(e) => {
             error!("Failed to analyze file: {}", eyre_unroll(e));
             return Ok(());
-        }
+        },
     };
 
     if len % 512 != 0 {
@@ -114,7 +114,7 @@ fn main() -> Result<()> {
     let (wrtx, wrrx) = mpsc::sync_channel(BUFFERS);
     let (rdtx, rdrx) = mpsc::sync_channel(BUFFERS);
 
-    for _ in 0 .. BUFFERS {
+    for _ in 0..BUFFERS {
         wrtx.send(AlignedBuffer::new())?;
     }
 
@@ -137,7 +137,7 @@ fn main() -> Result<()> {
                 target = device.dev,
             );
             return Ok(());
-        }
+        },
         Ok(out) => out,
     };
 
@@ -149,7 +149,7 @@ fn main() -> Result<()> {
                 rdtx.send(ReaderResult::Error)
                     .expect("failed to send error");
                 return Err(e);
-            }
+            },
         };
         let mut decompressor = match reader.open_reader(&source_file) {
             Ok(d) => d,
@@ -157,7 +157,7 @@ fn main() -> Result<()> {
                 rdtx.send(ReaderResult::Error)
                     .expect("failed to send error");
                 return Err(e);
-            }
+            },
         };
 
         rdtx.send(ReaderResult::Ready)
@@ -172,12 +172,12 @@ fn main() -> Result<()> {
                     rdtx.send(ReaderResult::Error)
                         .expect("failed to send error");
                     return Err(e.into());
-                }
+                },
             };
 
             let aligned_buf = buf.get_aligned_buf();
 
-            if let Err(e) = decompressor.read_exact(&mut aligned_buf[.. read_block_size]) {
+            if let Err(e) = decompressor.read_exact(&mut aligned_buf[..read_block_size]) {
                 rdtx.send(ReaderResult::Error)
                     .expect("failed to send error");
                 return Err(e.into());
@@ -189,7 +189,7 @@ fn main() -> Result<()> {
             data_left -= read_block_size;
         }
         rdtx.send(ReaderResult::Done).expect("failed to send done");
-        for _ in 0 .. BUFFERS {
+        for _ in 0..BUFFERS {
             wrrx.recv().expect("failed to flush buffers");
         }
         Ok(())
@@ -202,13 +202,13 @@ fn main() -> Result<()> {
             bar.finish_and_clear();
             error!("Reading thread failed: {}", eyre_unroll(result));
             return Ok(());
-        }
+        },
         _ => {
             bar.finish_and_clear();
             error!("Unexpected read thread finish");
             _ = read_thread.join().unwrap();
             return Ok(());
-        }
+        },
     }
 
     loop {
@@ -217,18 +217,18 @@ fn main() -> Result<()> {
             ReaderResult::Ready => {
                 error!("Unexpected ready");
                 continue;
-            }
+            },
             ReaderResult::Error => {
                 let result = read_thread.join().unwrap().expect_err("unexpected success");
                 bar.finish_and_clear();
                 error!("Reading thread failed: {}", eyre_unroll(result));
                 return Ok(());
-            }
+            },
             ReaderResult::Block(mut buf) => {
                 let read_block_size = buf.used;
                 let aligned_buf = buf.get_aligned_buf();
 
-                if let Err(e) = out.write_all(&aligned_buf[.. read_block_size]) {
+                if let Err(e) = out.write_all(&aligned_buf[..read_block_size]) {
                     bar.finish_and_clear();
                     error!("failed to write image: {e}");
                     return Ok(());
@@ -236,7 +236,7 @@ fn main() -> Result<()> {
                 bar.inc(read_block_size as u64);
                 // After last block bails out, as thread closes
                 wrtx.send(buf).expect("failed to send back buffer");
-            }
+            },
         }
     }
 
@@ -260,12 +260,12 @@ fn main() -> Result<()> {
     while data_left > 0 {
         let read_block_size = data_left.clamp(0, BUF_SIZE);
 
-        if let Err(e) = out.read_exact(&mut read_buf[.. read_block_size]) {
+        if let Err(e) = out.read_exact(&mut read_buf[..read_block_size]) {
             warn!("failed to read target for verification: {e}");
             bar.finish_and_clear();
             return Ok(());
         }
-        file_sum.update(&read_buf[.. read_block_size]);
+        file_sum.update(&read_buf[..read_block_size]);
         data_left -= read_block_size;
 
         bar.inc(read_block_size as u64);

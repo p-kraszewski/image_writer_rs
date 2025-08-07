@@ -1,6 +1,6 @@
 use crate::reader;
-use color_eyre::eyre::{eyre, Context, Result};
-use dialoguer::{theme::ColorfulTheme, Select};
+use color_eyre::eyre::{Context, Result, eyre};
+use dialoguer::{Select, theme::ColorfulTheme};
 use log::warn;
 use sha2::Digest;
 use std::{

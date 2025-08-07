@@ -21,6 +21,7 @@ The code assumes:
 - Support various disk image types (extension is case-insensitive):
     - Uncompressed: `.ISO`, `.FS`, `.IMG`, `.IMA`, `.DD`, `.BIN`, `.RAW`
     - Compressed: `.BZ2`, `.BZIP2`, `.GZ`, `.GZIP`, `.XZ`, `.LZMA`, `.PIXZ`, `.ZST`, `.ZSTD`, `.LZ4`
+- All images need to be in RAW format (after the eventual decompression).
 - Write directly to the device, bypassing cache.
 - Verify written data against the original image.
 
@@ -29,3 +30,4 @@ The code assumes:
 - [x] Check if image fits on media.
 - [ ] Optionally fix the secondary GPT partition table to end of written media (warning - will invalidate checksum as it
   must modify the primary GPT partition)
+- [ ] Support VM partition images (like `qcow2` or `vmdk`) - that is copy virtual disk to a physical one.
