@@ -32,7 +32,7 @@ where
         Box::new(Self::default())
     }
     fn open_reader(&self, path: &path::Path) -> Result<Box<dyn Read>>;
-    fn get_size_sum(&self, path: &path::Path) -> Result<(usize, [u8; 32])> {
+    fn get_size_sum(&self, path: &path::Path) -> Result<([u8; 32], usize)> {
         let mut reader = self.open_reader(path)?;
 
         let mut boot = [0u8; 512];
@@ -59,7 +59,7 @@ where
         let checksum = file_sum.finalize();
         let mut bin_checksum = [0u8; 32];
         bin_checksum.copy_from_slice(&checksum);
-        Ok((512 + size as usize, bin_checksum))
+        Ok((bin_checksum, 512 + size as usize))
     }
     fn get_name(&self) -> &str;
 }

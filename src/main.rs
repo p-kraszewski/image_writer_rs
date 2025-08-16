@@ -1,9 +1,10 @@
+mod database;
 mod reader;
 mod tools;
 mod usb;
 
 use crate::{reader::*, tools::*, usb::*};
-use color_eyre::eyre::{Context, Result};
+use color_eyre::eyre::{Context, Result, eyre};
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use sha2::Digest;
@@ -67,16 +68,51 @@ fn main() -> Result<()> {
         },
     };
 
-    info!(
-        "Calculating length and checksum of {source_file:?}, {comp}.",
-        comp = reader.get_name()
-    );
+    let source_dir = source_file.parent().unwrap();
+    let source_name = source_file
+        .file_name()
+        .ok_or_else(|| eyre!("Malformed path"))?;
 
-    let (len, source_sum) = match reader.get_size_sum(&source_file) {
-        Ok((len, csum)) => (len, csum),
-        Err(e) => {
-            error!("Failed to analyze file: {}", eyre_unroll(e));
-            return Ok(());
+    let mut db = match database::Database::load(source_dir) {
+        Ok(db) => db,
+        Err(err) => {
+            warn!("Failed to load checksum database: {err}");
+            database::Database::new(source_dir)
+        },
+    };
+
+    let (source_sum, len) = match db.get(&source_name) {
+        None => {
+            info!(
+                "Calculating length and checksum of {source_file:?}, {comp}.",
+                comp = reader.get_name()
+            );
+            match reader.get_size_sum(&source_file) {
+                Ok((sum, size)) => {
+                    db.put(&source_name, sum, size);
+                    match db.save() {
+                        Ok(_) => {
+                            info!("Updated checksum database");
+                        },
+                        Err(err) => {
+                            warn!("Failed to update checksum database: {err}");
+                        },
+                    }
+                    (sum, size)
+                },
+                Err(e) => {
+                    error!("Failed to analyze file: {}", eyre_unroll(e));
+                    return Ok(());
+                },
+            }
+        },
+        Some(val) => {
+            info!(
+                "Loaded checksum for {source_file:?}, {comp} from database.",
+                comp = reader.get_name()
+            );
+
+            val
         },
     };
 
